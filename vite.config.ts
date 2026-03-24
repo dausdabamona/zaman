@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: '/zaman/',
   resolve: {
     alias: {
@@ -15,55 +15,60 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'favicon.svg'],
-      devOptions: { enabled: false },
-      manifest: {
-        name: 'ZAMAN — Eisenhower Matrix',
-        short_name: 'ZAMAN',
-        description: 'Aplikasi manajemen waktu personal berbasis Eisenhower Matrix dengan jadwal shalat',
-        theme_color: '#1E293B',
-        background_color: '#0F172A',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/zaman/',
-        start_url: '/zaman/',
-        icons: [
-          {
-            src: '/zaman/icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/zaman/icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/zaman/icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.aladhan\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'aladhan-api-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24, // 24 jam
-              },
+    // VitePWA hanya aktif saat production build
+    // Di dev mode dinonaktifkan untuk menghindari noise: inject_main.js, 404 virtual module, CSP eval warning
+    ...(mode === 'production'
+      ? [
+          VitePWA({
+            registerType: 'autoUpdate',
+            includeAssets: ['icons/*.png', 'favicon.svg'],
+            manifest: {
+              name: 'ZAMAN — Eisenhower Matrix',
+              short_name: 'ZAMAN',
+              description: 'Aplikasi manajemen waktu personal berbasis Eisenhower Matrix dengan jadwal shalat',
+              theme_color: '#1E293B',
+              background_color: '#0F172A',
+              display: 'standalone',
+              orientation: 'portrait',
+              scope: '/zaman/',
+              start_url: '/zaman/',
+              icons: [
+                {
+                  src: '/zaman/icons/icon-192.png',
+                  sizes: '192x192',
+                  type: 'image/png',
+                },
+                {
+                  src: '/zaman/icons/icon-512.png',
+                  sizes: '512x512',
+                  type: 'image/png',
+                },
+                {
+                  src: '/zaman/icons/icon-512.png',
+                  sizes: '512x512',
+                  type: 'image/png',
+                  purpose: 'maskable',
+                },
+              ],
             },
-          },
-        ],
-      },
-    }),
+            workbox: {
+              globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+              runtimeCaching: [
+                {
+                  urlPattern: /^https:\/\/api\.aladhan\.com\/.*/i,
+                  handler: 'NetworkFirst',
+                  options: {
+                    cacheName: 'aladhan-api-cache',
+                    expiration: {
+                      maxEntries: 10,
+                      maxAgeSeconds: 60 * 60 * 24, // 24 jam
+                    },
+                  },
+                },
+              ],
+            },
+          }),
+        ]
+      : []),
   ],
-})
+}))
